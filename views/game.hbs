@@ -1,0 +1,741 @@
+<div id="error-message" class="error"></div>
+<div id="success-message" class="success"></div>
+
+<!-- Game Master Notifications -->
+<div id="gameMasterNotifications"
+    style="display: none; background: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #2196f3;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 1.2em;">ℹ️</span>
+        <div>
+            <h4 style="margin: 0; color: #1976d2; font-size: 1em;">Game Master Info</h4>
+            <p id="gameMasterNotificationText" style="margin: 5px 0 0 0; color: #1976d2; font-size: 0.9em;"></p>
+        </div>
+    </div>
+</div>
+
+<!-- Player Notifications -->
+<div id="playerNotifications"
+    style="display: none; background: #fff3cd; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #ffc107;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 1.2em;">📢</span>
+        <div>
+            <h4 style="margin: 0; color: #856404; font-size: 1em;">Game Status</h4>
+            <p id="playerNotificationText" style="margin: 5px 0 0 0; color: #856404; font-size: 0.9em;"></p>
+        </div>
+    </div>
+</div>
+
+<div class="game-grid">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3 style="margin-bottom: 15px; color: #333;">Players (<span id="playerCount">0</span>)</h3>
+        <ul id="playersList" class="players-list"></ul>
+
+        <!-- Game Statistics -->
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <h4 style="margin-bottom: 10px; color: #333;">Round Stats</h4>
+            <div style="font-size: 0.9em; color: #666;">
+                <div>Your Attempts: <span id="yourAttempts">0/3</span></div>
+                <div>Your Score: <span id="yourScore">0</span> pts</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Area -->
+    <div class="game-area">
+        <!-- Game Status -->
+        <div class="game-status">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h3 style="color: #333;">Session: <span style="color: #667eea;">{{sessionId}}</span></h3>
+                <p id="gameStatusText" style="color: #666; margin-top: 5px;">Waiting for players...</p>
+            </div>
+
+            <!-- Game Master Controls -->
+            <!-- Game Master Controls -->
+            <div id="gameMasterControls" style="display: none;">
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <!-- View Mode (when question is set) -->
+                    <div id="questionViewMode" style="display: none;">
+                        <div
+                            style="display: flex; justify-content: between; align-items: flex-start; margin-bottom: 15px;">
+                            <h4 style="margin: 0; color: #333; flex: 1;">Question & Answer Set</h4>
+                            <button onclick="enableEditMode()"
+                                style="background: #6c757d; padding: 8px 15px; font-size: 0.9em;">
+                                ✏️ Edit
+                            </button>
+                        </div>
+
+                        <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                            <div style="margin-bottom: 10px;">
+                                <strong style="color: #667eea; display: block; margin-bottom: 5px;">Question:</strong>
+                                <p id="questionDisplayView" style="margin: 0; color: #333; font-size: 1.1em;"></p>
+                            </div>
+                            <div>
+                                <strong style="color: #667eea; display: block; margin-bottom: 5px;">Answer:</strong>
+                                <p id="answerDisplayView" style="margin: 0; color: #333; font-size: 1.1em;"></p>
+                            </div>
+                        </div>
+
+                        <div class="form-actions" style="margin-top: 15px;">
+                            <button id="startGameBtn" onclick="startGame()"
+                                style="background: #28a745; padding: 12px 25px; font-size: 1.1em;">
+                                🎮 Start Game
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Edit Mode (when setting/modifying question) -->
+                    <div id="questionEditMode">
+                        <h4 style="margin: 0 0 10px 0; color: #333;">Set Question & Answer</h4>
+                        <div class="form-group">
+                            <label for="question">Question</label>
+                            <input type="text" id="question"
+                                placeholder="Enter your question (e.g., 'What has keys but can't open locks?')">
+                        </div>
+                        <div class="form-group">
+                            <label for="answer">Answer</label>
+                            <input type="text" id="answer" placeholder="Enter the answer (e.g., 'piano')">
+                        </div>
+                        <div class="form-actions">
+                            <button id="setQuestionBtn" onclick="setQuestion()">Set Question</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game In Progress -->
+            <div id="gameInProgress" style="display: none;">
+                <div class="timer" id="timer">60</div>
+                <div class="question-display" id="questionDisplay"></div>
+
+                <div id="guessControls">
+                    <div class="form-group">
+                        <input type="text" id="guessInput" placeholder="Enter your guess...">
+                    </div>
+                    <button onclick="submitGuess()">Submit Guess</button>
+                    <div class="attempts-display" id="attemptsDisplay">Attempts remaining: 3</div>
+                </div>
+            </div>
+
+            <!-- Game Ended -->
+            <div id="gameEnded" style="display: none; text-align: center; padding: 30px;">
+                <div style="max-width: 500px; margin: 0 auto;">
+                    <h2 id="gameResult" style="margin-bottom: 20px; font-size: 2em;"></h2>
+                    <p id="answerReveal"
+                        style="font-size: 1.3em; color: #666; margin-bottom: 25px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                    </p>
+
+                    <!-- Show next round button only to the new game master -->
+                    <div id="nextRoundSection" style="display: none;">
+                        <p style="color: #666; margin-bottom: 15px; font-size: 1.1em;">You are now the Game Master!</p>
+                        <button id="nextRoundBtn" onclick="startNextRound()"
+                            style="padding: 12px 30px; font-size: 1.1em;">Start Next Round</button>
+                    </div>
+
+                    <!-- Show waiting message for other players -->
+                    <div id="waitingForGameMasterSection" style="display: none;">
+                        <p style="color: #666; margin-bottom: 15px; font-size: 1.1em;">Waiting for <span
+                                id="newGameMasterName" style="font-weight: bold; color: #667eea;"></span> to start the
+                            next round...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Container -->
+        <div class="chat-container">
+            <h3 style="margin-bottom: 15px; color: #333;">Game Chat</h3>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Type a message...">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+{{#contentFor "scripts"}}
+<script>
+    const socket = io();
+    const sessionId = '{{sessionId}}';
+    let isGameMaster = false;
+    let myUsername = '{{username}}';
+    let gameStatus = 'waiting';
+    let timerInterval = null;
+    let attemptsLeft = 3;
+    let questionSet = false;
+
+    if (!myUsername) {
+        window.location.href = '/';
+    } else {
+        socket.emit('join_session', { username: myUsername, sessionId });
+    }
+
+    // Socket event handlers
+    socket.on('session_joined', (data) => {
+        myUsername = data.username;
+        isGameMaster = data.isGameMaster;
+        gameStatus = data.gameStatus || 'waiting';
+        updateGameMasterUI();
+        updatePlayersList(data.players);
+        updatePlayerStats(data.players);
+
+        // Update next round UI in case we're reconnecting to an ended game
+        updateNextRoundUI();
+
+        if (data.currentQuestion && gameStatus === 'in_progress') {
+            document.getElementById('gameInProgress').style.display = 'block';
+            document.getElementById('questionDisplay').textContent = data.currentQuestion;
+            showSuccess('Reconnected to active game!');
+
+            if (isGameMaster) {
+                showGameMasterNotification('Game is in progress! Players are guessing...');
+            } else {
+                document.getElementById('guessControls').style.display = 'block';
+            }
+        } else if (gameStatus === 'ended') {
+            // Show game ended screen if reconnecting to ended game
+            document.getElementById('gameInProgress').style.display = 'none';
+            document.getElementById('gameEnded').style.display = 'block';
+        }
+    });
+
+
+    socket.on('session_created', (data) => {
+        myUsername = data.username;
+        isGameMaster = data.isGameMaster;
+        updateGameMasterUI();
+    });
+
+    socket.on('players_update', (data) => {
+        updatePlayersList(data.players, data.gameMasterId);
+        updatePlayerStats(data.players);
+        document.getElementById('playerCount').textContent = data.players.length;
+
+        // Update game master status
+        const myPlayer = data.players.find(p => p.username === myUsername);
+        if (myPlayer) {
+            isGameMaster = myPlayer.socketId === data.gameMasterId;
+            updateGameMasterUI();
+        }
+    });
+
+    socket.on('chat_message', (data) => {
+        addChatMessage(data);
+    });
+
+    socket.on('question_set', (data) => {
+        enableViewMode(data.question, data.answer);
+        showSuccess(data.message);
+    });
+
+    socket.on('player_notification', (data) => {
+        if (data.type === 'question_ready' && !isGameMaster) {
+            showPlayerNotification(data.message);
+        }
+    });
+
+    socket.on('game_master_notification', (data) => {
+        if (isGameMaster) {
+            showGameMasterNotification(data.message);
+        }
+    });
+
+    socket.on('game_started', (data) => {
+        gameStatus = 'in_progress';
+        attemptsLeft = 3;
+        questionSet = false;
+
+        document.getElementById('gameStatusText').textContent = 'Game in progress!';
+        document.getElementById('gameMasterControls').style.display = 'none';
+        document.getElementById('gameInProgress').style.display = 'block';
+        document.getElementById('gameEnded').style.display = 'none';
+        document.getElementById('questionDisplay').textContent = data.question;
+        document.getElementById('attemptsDisplay').textContent = 'Attempts remaining: 3';
+        document.getElementById('guessInput').value = '';
+
+        // Hide notifications
+        document.getElementById('gameMasterNotifications').style.display = 'none';
+        document.getElementById('playerNotifications').style.display = 'none';
+
+        if (isGameMaster) {
+            document.getElementById('guessControls').style.display = 'none';
+            showGameMasterNotification('Game started! Players are now guessing...');
+        } else {
+            document.getElementById('guessControls').style.display = 'block';
+            showPlayerNotification('Game started! You have 3 attempts to guess the answer.');
+        }
+
+        startTimer(data.timeLimit);
+    });
+
+    socket.on('guess_result', (data) => {
+        if (!data.correct) {
+            attemptsLeft = data.attemptsLeft;
+            document.getElementById('attemptsDisplay').textContent = `Attempts remaining: ${attemptsLeft}`;
+            updatePlayerStats();
+
+            if (attemptsLeft === 0) {
+                showError(`No attempts left! Waiting for other players...`);
+            } else {
+                showError(`Wrong answer! ${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} left.`);
+            }
+            document.getElementById('guessInput').value = '';
+        }
+    });
+
+    socket.on('game_ended', (data) => {
+        gameStatus = 'ended';
+        stopTimer();
+
+        document.getElementById('gameInProgress').style.display = 'none';
+        document.getElementById('gameEnded').style.display = 'block';
+
+        const resultEl = document.getElementById('gameResult');
+        const answerEl = document.getElementById('answerReveal');
+
+        if (data.reason === 'winner') {
+            if (data.winner === myUsername) {
+                resultEl.textContent = '🎉 You Won! 🎉';
+                resultEl.style.color = '#4caf50';
+            } else {
+                resultEl.textContent = `${data.winner} Won the Round!`;
+                resultEl.style.color = '#667eea';
+            }
+            answerEl.textContent = `The answer was: ${data.answer}`;
+        } else if (data.reason === 'timeout') {
+            resultEl.textContent = '⏱️ Time\'s Up!';
+            resultEl.style.color = '#f44336';
+            answerEl.textContent = `The answer was: ${data.answer}`;
+        } else if (data.reason === 'all_attempts_used') {
+            resultEl.textContent = '❌ All Attempts Used!';
+            resultEl.style.color = '#ff9800';
+            answerEl.textContent = `The answer was: ${data.answer}`;
+        }
+
+        updatePlayersList(data.players);
+        updatePlayerStats(data.players);
+
+        // Update the UI based on current game master status
+        updateNextRoundUI();
+    });
+
+    socket.on('new_game_master', (data) => {
+        const myPlayer = document.querySelector(`#playersList .player-item[data-username="${myUsername}"]`);
+        isGameMaster = data.gameMasterName === myUsername;
+
+        console.log('Game master changed:', {
+            newGameMaster: data.gameMasterName,
+            myUsername: myUsername,
+            isGameMaster: isGameMaster,
+            data
+        });
+
+        // Update players list with new game master
+        updatePlayersList(data.players, data.gameMasterId);
+
+        // Always update the next round UI when game master changes
+        updateNextRoundUI();
+
+        // Show notification if I became the game master
+        if (isGameMaster) {
+            showGameMasterNotification('You are now the Game Master! Click "Start Next Round" to begin the next round.');
+        }
+    });
+
+
+
+    socket.on('next_round_starting', (data) => {
+        // Reset UI for new round
+        document.getElementById('gameEnded').style.display = 'none';
+        document.getElementById('gameInProgress').style.display = 'none';
+        document.getElementById('nextRoundSection').style.display = 'none';
+        document.getElementById('waitingForGameMasterSection').style.display = 'none';
+
+        gameStatus = 'waiting';
+        questionSet = false;
+        attemptsLeft = 3;
+        enableViewMode("", "")
+        enableEditMode()
+        updateGameMasterUI();
+
+        showSuccess('New round starting!');
+    });
+
+
+    socket.on('session_reconnected', (data) => {
+        myUsername = data.username;
+        isGameMaster = data.isGameMaster;
+        gameStatus = data.gameStatus || 'waiting';
+        updateGameMasterUI();
+        updatePlayersList(data.players);
+        updatePlayerStats(data.players);
+
+        // Update next round UI in case we're reconnecting to an ended game
+        updateNextRoundUI();
+
+        if (data.currentQuestion && gameStatus === 'in_progress') {
+            document.getElementById('gameInProgress').style.display = 'block';
+            document.getElementById('questionDisplay').textContent = data.currentQuestion;
+        } else if (gameStatus === 'ended') {
+            // Show game ended screen if reconnecting to ended game
+            document.getElementById('gameInProgress').style.display = 'none';
+            document.getElementById('gameEnded').style.display = 'block';
+        }
+
+        showSuccess('Reconnected to game session!');
+    });
+
+
+
+    socket.on('error', (data) => {
+        showError(data.message);
+    });
+
+    // UI Functions
+    function enableEditMode() {
+        document.getElementById('questionViewMode').style.display = 'none';
+        document.getElementById('questionEditMode').style.display = 'block';
+
+        // Copy current values to input fields for editing
+        const currentQuestion = document.getElementById('questionDisplayView').textContent;
+        const currentAnswer = document.getElementById('answerDisplayView').textContent;
+
+        document.getElementById('question').value = currentQuestion;
+        document.getElementById('answer').value = currentAnswer;
+
+        questionSet = false;
+        updateStartButton();
+    }
+
+    function enableViewMode(question, answer) {
+        document.getElementById('questionEditMode').style.display = 'none';
+        document.getElementById('questionViewMode').style.display = 'block';
+
+        // Display the question and answer
+        document.getElementById('questionDisplayView').textContent = question;
+        document.getElementById('answerDisplayView').textContent = answer;
+
+        questionSet = true;
+        updateStartButton();
+    }
+
+    function updateGameMasterUI() {
+        if (isGameMaster && gameStatus === 'waiting') {
+            document.getElementById('gameMasterControls').style.display = 'block';
+            document.getElementById('gameStatusText').textContent = 'You are the Game Master! Set a question to start.';
+
+            // Start in edit mode by default
+            if (!questionSet) {
+                document.getElementById('questionViewMode').style.display = 'none';
+                document.getElementById('questionEditMode').style.display = 'block';
+            }
+            
+            updateStartButton();
+
+            // Show game master notification when players are waiting
+            const activePlayers = Array.from(document.querySelectorAll('.player-item:not(.disconnected)'))
+                .filter(item => !item.classList.contains('master'));
+
+            if (activePlayers.length > 0) {
+                showGameMasterNotification(`${activePlayers.length} player${activePlayers.length !== 1 ? 's' : ''} waiting for you to set a question.`);
+            }
+        } else if (gameStatus === 'waiting') {
+            document.getElementById('gameMasterControls').style.display = 'none';
+            document.getElementById('gameStatusText').textContent = 'Waiting for Game Master to start...';
+            showPlayerNotification('Waiting for Game Master to set a question and start the game.');
+        } else if (isGameMaster && gameStatus === 'in_progress') {
+            showGameMasterNotification('Players are currently guessing! Monitor the chat for their attempts.');
+        }
+    }
+
+    function updateStartButton() {
+        const startBtn = document.getElementById('startGameBtn');
+        if (startBtn) {
+            startBtn.disabled = !questionSet;
+            startBtn.style.opacity = questionSet ? '1' : '0.5';
+            startBtn.style.cursor = questionSet ? 'pointer' : 'not-allowed';
+        }
+    }
+
+
+    function updateNextRoundUI() {
+        if (isGameMaster && gameStatus === 'ended') {
+            // I'm the game master and round has ended - show next round button
+            document.getElementById('nextRoundSection').style.display = 'block';
+            document.getElementById('waitingForGameMasterSection').style.display = 'none';
+        } else if (gameStatus === 'ended') {
+            // Round has ended but I'm not game master - show waiting message
+            document.getElementById('nextRoundSection').style.display = 'none';
+            document.getElementById('waitingForGameMasterSection').style.display = 'block';
+
+            // Find the current game master name from the players list
+            const gameMasterItem = document.querySelector('.player-item.master');
+            if (gameMasterItem) {
+                const gameMasterName = gameMasterItem.querySelector('.player-name').textContent.replace(' 👑', '');
+                document.getElementById('newGameMasterName').textContent = gameMasterName;
+            }
+        } else {
+            // Round hasn't ended - hide both sections
+            document.getElementById('nextRoundSection').style.display = 'none';
+            document.getElementById('waitingForGameMasterSection').style.display = 'none';
+        }
+    }
+
+
+
+    function updatePlayersList(players, gameMasterId) {
+        const listEl = document.getElementById('playersList');
+        listEl.innerHTML = '';
+
+        players.forEach(player => {
+            const li = document.createElement('li');
+            li.className = 'player-item';
+            li.setAttribute('data-username', player.username);
+
+            if (!player.isConnected) {
+                li.classList.add('disconnected');
+            }
+
+            if (player.socketId === gameMasterId) {
+                li.classList.add('master');
+            }
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'player-name';
+            nameSpan.textContent = player.username;
+
+            if (player.socketId === gameMasterId) {
+                nameSpan.textContent += ' 👑';
+            }
+
+            if (!player.isConnected) {
+                nameSpan.textContent += ' 🔴';
+            }
+
+            const scoreSpan = document.createElement('span');
+            scoreSpan.className = 'player-score';
+            scoreSpan.textContent = `${player.score} pts`;
+
+            li.appendChild(nameSpan);
+            li.appendChild(scoreSpan);
+            listEl.appendChild(li);
+        });
+
+        // Update player count
+        document.getElementById('playerCount').textContent = players.length;
+    }
+
+    function updatePlayerStats(players) {
+        if (players) {
+            const myPlayer = players.find(p => p.username === myUsername);
+            if (myPlayer) {
+                document.getElementById('yourAttempts').textContent = `${myPlayer.attempts}/3`;
+                document.getElementById('yourScore').textContent = myPlayer.score;
+                attemptsLeft = 3 - myPlayer.attempts;
+            }
+        } else {
+            document.getElementById('yourAttempts').textContent = `${3 - attemptsLeft}/3`;
+        }
+    }
+
+    function addChatMessage(data) {
+        const messagesEl = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message';
+
+        if (data.type === 'system') {
+            msgDiv.classList.add('system');
+            msgDiv.textContent = data.message;
+        } else if (data.type === 'user' || data.type === 'guess') {
+            if (data.username === myUsername) {
+                msgDiv.classList.add('own');
+            } else {
+                msgDiv.classList.add('user');
+            }
+
+            const usernameDiv = document.createElement('div');
+            usernameDiv.className = 'username';
+            usernameDiv.textContent = data.username;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = data.message;
+
+            msgDiv.appendChild(usernameDiv);
+            msgDiv.appendChild(messageDiv);
+        }
+
+        messagesEl.appendChild(msgDiv);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function startTimer(seconds) {
+        let timeLeft = seconds;
+        const timerEl = document.getElementById('timer');
+        timerEl.classList.remove('warning');
+
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerEl.textContent = timeLeft;
+
+            if (timeLeft <= 10) {
+                timerEl.classList.add('warning');
+            }
+
+            if (timeLeft <= 0) {
+                stopTimer();
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        const timerEl = document.getElementById('timer');
+        timerEl.classList.remove('warning');
+        timerEl.textContent = '60';
+    }
+
+    function showGameMasterNotification(message) {
+        const notificationEl = document.getElementById('gameMasterNotifications');
+        const textEl = document.getElementById('gameMasterNotificationText');
+
+        textEl.textContent = message;
+        notificationEl.style.display = 'block';
+
+        // Auto-hide after 8 seconds for non-critical notifications
+        setTimeout(() => {
+            if (notificationEl.style.display === 'block') {
+                notificationEl.style.display = 'none';
+            }
+        }, 8000);
+    }
+
+    function showPlayerNotification(message) {
+        const notificationEl = document.getElementById('playerNotifications');
+        const textEl = document.getElementById('playerNotificationText');
+
+        textEl.textContent = message;
+        notificationEl.style.display = 'block';
+
+        // Auto-hide after 8 seconds
+        setTimeout(() => {
+            if (notificationEl.style.display === 'block') {
+                notificationEl.style.display = 'none';
+            }
+        }, 8000);
+    }
+
+    function showError(message) {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    function showSuccess(message) {
+        const successDiv = document.getElementById('success-message');
+        successDiv.textContent = message;
+        successDiv.style.display = 'block';
+        setTimeout(() => {
+            successDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    // Game Actions
+    function setQuestion() {
+        const question = document.getElementById('question').value.trim();
+        const answer = document.getElementById('answer').value.trim();
+
+        if (!question || !answer) {
+            showError('Please enter both question and answer');
+            return;
+        }
+
+        socket.emit('set_question', { sessionId, question, answer });
+
+        // Switch to view mode after setting
+        enableViewMode(question, answer);
+    }
+
+    function startGame() {
+        if (!questionSet) {
+            showError('Please set a question and answer first');
+            return;
+        }
+        socket.emit('start_game', { sessionId });
+    }
+
+    function submitGuess() {
+        const guess = document.getElementById('guessInput').value.trim();
+
+        if (!guess) {
+            showError('Please enter a guess');
+            return;
+        }
+
+        if (attemptsLeft <= 0) {
+            showError('No attempts remaining');
+            return;
+        }
+
+        socket.emit('submit_guess', { sessionId, guess });
+    }
+
+    function sendMessage() {
+        const message = document.getElementById('chatInput').value.trim();
+
+        if (!message) return;
+
+        socket.emit('chat_message', { sessionId, message });
+        document.getElementById('chatInput').value = '';
+    }
+
+    function startNextRound() {
+        socket.emit('start_next_round', { sessionId });
+    }
+
+
+
+    // Event listeners
+    document.getElementById('guessInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') submitGuess();
+    });
+
+    document.getElementById('chatInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    document.getElementById('question').addEventListener('input', () => {
+        questionSet = false;
+        updateStartButton();
+    });
+
+    document.getElementById('answer').addEventListener('input', () => {
+        questionSet = false;
+        updateStartButton();
+    });
+
+    // Handle page unload
+    window.addEventListener('beforeunload', () => {
+        socket.disconnect();
+    });
+
+    // Prevent double submissions
+    let isSubmitting = false;
+    const originalSubmitGuess = submitGuess;
+    submitGuess = function () {
+        if (isSubmitting) return;
+        isSubmitting = true;
+        originalSubmitGuess();
+        setTimeout(() => { isSubmitting = false; }, 1000);
+    };
+</script>
+{{/contentFor}}

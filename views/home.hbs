@@ -1,0 +1,145 @@
+<div id="error-message" class="error" style="{{#if error}}display: block;{{else}}display: none;{{/if}}">
+    {{error}}
+</div>
+<div id="success-message" class="success" style="{{#if success}}display: block;{{else}}display: none;{{/if}}">
+    {{success}}
+</div>
+
+<div style="max-width: 500px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="color: #333; margin-bottom: 10px;">Welcome to Guessing Game!</h2>
+        <p style="color: #666;">Create a new game session or join an existing one</p>
+    </div>
+
+    <div class="form-group">
+        <label for="username">Your Username</label>
+        <input type="text" id="username" placeholder="Enter your username" required />
+    </div>
+
+    <div class="form-group">
+        <label for="sessionId">Session ID</label>
+        <input type="text" id="sessionId" placeholder="Enter or create a session ID" required />
+    </div>
+
+    <div style="display: flex; gap: 10px; justify-content: center;">
+        <button id="createBtn" onclick="createSession()">Create Session</button>
+        <button id="joinBtn" onclick="joinSession()">Join Session</button>
+    </div>
+
+    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+        <h3 style="margin-bottom: 15px; color: #333;">How to Play:</h3>
+        <ol style="color: #666; line-height: 1.8; padding-left: 20px;">
+            <li>Create a session and share the Session ID with friends</li>
+            <li>Wait for at least 2 players to join</li>
+            <li>Game master sets a question and answer</li>
+            <li>Players have 3 attempts to guess within 60 seconds</li>
+            <li>Winner gets 10 points!</li>
+            <li>Game master role rotates after each round</li>
+        </ol>
+    </div>
+</div>
+{{#contentFor "scripts"}}
+<script>
+    const socket = io();
+
+    socket.on('session_created', (data) => {
+        showSuccess('Session created successfully!');
+        setTimeout(() => {
+            window.location.href = `/game/${data.sessionId}?username=${data?.username}`;
+        }, 1000);
+    });
+
+    socket.on('session_joined', (data) => {
+        showSuccess('Joined session successfully!');
+        setTimeout(() => {
+            window.location.href = `/game/${data.sessionId}?username=${data?.username}`;
+        }, 1000);
+    });
+
+    socket.on('session_reconnected', (data) => {
+        showSuccess('Joined session successfully!');
+        setTimeout(() => {
+            window.location.href = `/game/${data.sessionId}?username=${data?.username}`;
+        }, 1000);
+    });
+
+    socket.on('error', (data) => {
+        showError(data.message);
+    });
+
+    function createSession() {
+        const username = document.getElementById('username').value.trim();
+        const sessionId = document.getElementById('sessionId').value.trim();
+
+        if (!username) {
+            showError('Please enter a username');
+            return;
+        }
+
+        if (!sessionId) {
+            showError('Please enter a session ID');
+            return;
+        }
+
+        socket.emit('create_session', { username, sessionId });
+    }
+
+    function joinSession() {
+        const username = document.getElementById('username').value.trim();
+        const sessionId = document.getElementById('sessionId').value.trim();
+
+        if (!username) {
+            showError('Please enter a username');
+            return;
+        }
+
+        if (!sessionId) {
+            showError('Please enter a session ID');
+            return;
+        }
+
+        socket.emit('join_session', { username, sessionId });
+    }
+
+    function showError(message) {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    function showSuccess(message) {
+        const successDiv = document.getElementById('success-message');
+        successDiv.textContent = message;
+        successDiv.style.display = 'block';
+        setTimeout(() => {
+            successDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    document.getElementById('username').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') joinSession();
+    });
+
+    document.getElementById('sessionId').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') joinSession();
+    });
+
+    // Auto-hide messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(() => {
+            const errorDiv = document.getElementById('error-message');
+            const successDiv = document.getElementById('success-message');
+
+            if (errorDiv.style.display !== 'none') {
+                errorDiv.style.display = 'none';
+            }
+            if (successDiv.style.display !== 'none') {
+                successDiv.style.display = 'none';
+            }
+        }, 5000);
+    });
+</script>
+{{/contentFor}}
