@@ -81,6 +81,11 @@
             return;
         }
 
+        if (sessionId?.length < 3) {
+            showError('session ID is too short, maximum of three characters allowed');
+            return;
+        }
+
         socket.emit('create_session', { username, sessionId });
     }
 
